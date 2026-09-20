@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node (for syntax checks only)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Syntax check JavaScript
+        run: |
+          node --check app.js
+          node --check samples.js
+          node --check config.js
+
+      - name: Assemble site
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          mkdir _site
+          cp index.html styles.css app.js samples.js _site/
+          if [ -n "$GEMINI_API_KEY" ]; then
+            echo "GEMINI_API_KEY secret found: injecting it into config.js (restrict the key by HTTP referrer!)"
+            printf 'window.NYAY_CONFIG = %s;\n' "$(jq -n --arg k "$GEMINI_API_KEY" '{geminiApiKey: $k}')" > _site/config.js
+          else
+            echo "No GEMINI_API_KEY secret: visitors will paste their own key in Settings."
+            cp config.js _site/config.js
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
