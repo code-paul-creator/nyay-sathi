@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nyay Saathi — legal documents in plain language</title>
+  <meta name="description" content="Upload a contract, notice or policy. Get a plain-language explanation, a clause-by-clause risk scan, document comparison, grounded Q&A and a checklist to take to a lawyer. Powered by Google Gemini.">
+  <meta name="theme-color" content="#15203B">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#bench">Skip to analysis</a>
+
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">§</span>
+      <span class="brand-name">Nyay Saathi</span>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost" id="btnSample" type="button">Try a sample</button>
+      <button class="btn ghost" id="btnSettings" type="button">Settings</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ───────────── Document pane ───────────── -->
+    <section class="doc-pane" id="docPane" aria-label="Your document">
+      <div class="doc-toolbar" id="docToolbar" hidden>
+        <div class="doc-meta">
+          <strong id="docName">Pasted text</strong>
+          <span id="docCount" class="muted"></span>
+        </div>
+        <div class="doc-tools">
+          <button class="btn small" id="btnEdit" type="button">Edit text</button>
+          <button class="btn small" id="btnMask" type="button" title="Replace emails, phone numbers, Aadhaar, PAN and account numbers with placeholders before you analyse">Hide personal details</button>
+          <button class="btn small" id="btnReplace" type="button">Replace</button>
+        </div>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <h1>Understand the document before you sign it.</h1>
+        <p class="dz-lede">Drop in a contract, rental agreement, notice or policy. You get a plain-language explanation, the clauses worth a second look, and questions to take to a lawyer.</p>
+        <div class="dz-actions">
+          <button class="btn primary" id="btnChoose" type="button">Choose a file</button>
+          <button class="btn" id="btnPaste" type="button">Paste text</button>
+          <button class="btn" id="btnSample2" type="button">Try a sample rental agreement</button>
+        </div>
+        <p class="dz-note">PDF, Word (.docx), text, or a photo of a page. Or drag a file anywhere on this side.</p>
+      </div>
+
+      <textarea id="docEditor" class="doc-editor" hidden spellcheck="false" aria-label="Document text" placeholder="Paste the document text here…"></textarea>
+      <article id="docView" class="doc-view" hidden tabindex="0" aria-label="Document text with highlights"></article>
+
+      <input type="file" id="fileA" hidden accept=".pdf,.docx,.txt,.md,image/*">
+    </section>
+
+    <!-- ───────────── Workbench ───────────── -->
+    <section class="bench" id="bench" aria-label="Analysis">
+      <p class="disclaimer" role="note">General information to help you understand a document. It is not legal advice and cannot replace a lawyer.</p>
+
+      <div class="context">
+        <label>You are the
+          <input id="role" type="text" maxlength="60" placeholder="tenant, borrower, employee…" autocomplete="off">
+        </label>
+        <label>Answer in
+          <select id="lang"></select>
+        </label>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="What to do with this document">
+        <button role="tab" id="tab-explain" aria-controls="panel-explain" aria-selected="true">Explain</button>
+        <button role="tab" id="tab-risks" aria-controls="panel-risks" aria-selected="false" tabindex="-1">Risks</button>
+        <button role="tab" id="tab-compare" aria-controls="panel-compare" aria-selected="false" tabindex="-1">Compare</button>
+        <button role="tab" id="tab-ask" aria-controls="panel-ask" aria-selected="false" tabindex="-1">Ask</button>
+        <button role="tab" id="tab-next" aria-controls="panel-next" aria-selected="false" tabindex="-1">Next steps</button>
+      </div>
+
+      <div class="panels">
+        <!-- Explain -->
+        <div class="panel" id="panel-explain" role="tabpanel" aria-labelledby="tab-explain">
+          <p class="lede">What the document does, who owes what, the numbers and dates that matter, and the jargon decoded.</p>
+          <div class="actions"><button class="btn primary run" id="run-explain" type="button">Explain this document</button></div>
+          <div class="out" id="out-explain" aria-live="polite"></div>
+        </div>
+
+        <!-- Risks -->
+        <div class="panel" id="panel-risks" role="tabpanel" aria-labelledby="tab-risks" hidden>
+          <p class="lede">Clauses that are one-sided, unusual, costly or unclear, highlighted in the document with what to ask about each.</p>
+          <div class="actions"><button class="btn primary run" id="run-risks" type="button">Scan for risky clauses</button></div>
+          <div class="out" id="out-risks" aria-live="polite"></div>
+        </div>
+
+        <!-- Compare -->
+        <div class="panel" id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+          <p class="lede">Compare the document on the left (Document A) with another version, offer or policy (Document B).</p>
+          <div class="docb">
+            <div class="docb-head">
+              <strong id="docBName">Document B</strong>
+              <span>
+                <button class="btn small" id="btnChooseB" type="button">Choose a file</button>
+                <button class="btn small" id="btnSamplePair" type="button">Load sample pair</button>
+              </span>
+            </div>
+            <textarea id="docB" rows="6" spellcheck="false" aria-label="Document B text" placeholder="Paste Document B here, or choose a file…"></textarea>
+            <input type="file" id="fileB" hidden accept=".pdf,.docx,.txt,.md,image/*">
+          </div>
+          <div class="actions"><button class="btn primary run" id="run-compare" type="button">Compare A and B</button></div>
+          <div class="out" id="out-compare" aria-live="polite"></div>
+        </div>
+
+        <!-- Ask -->
+        <div class="panel" id="panel-ask" role="tabpanel" aria-labelledby="tab-ask" hidden>
+          <p class="lede">Ask anything about the document. Answers come only from its text, with the passage quoted so you can check it.</p>
+          <div class="chips" id="starters">
+            <button class="chip-btn" type="button">Can I leave early? What would it cost?</button>
+            <button class="chip-btn" type="button">How much money do I owe, and when?</button>
+            <button class="chip-btn" type="button">What is unusual or one-sided here?</button>
+          </div>
+          <div class="chatlog" id="chatlog" aria-live="polite"></div>
+          <form class="chatform" id="chatForm">
+            <input id="chatInput" type="text" autocomplete="off" placeholder="Ask about a clause, a deadline, a penalty…" aria-label="Your question">
+            <button class="btn primary" type="submit" id="chatSend">Ask</button>
+          </form>
+        </div>
+
+        <!-- Next steps -->
+        <div class="panel" id="panel-next" role="tabpanel" aria-labelledby="tab-next" hidden>
+          <p class="lede">Your options, a checklist, the papers to gather and questions to bring to a lawyer.</p>
+          <label class="field">What is your situation or worry? <span class="muted">(optional)</span>
+            <textarea id="situation" rows="3" maxlength="800" placeholder="e.g. My landlord wants me to sign this before Friday and I plan to move out in 8 months."></textarea>
+          </label>
+          <div class="actions"><button class="btn primary run" id="run-next" type="button">Prepare my next steps</button></div>
+          <div class="out" id="out-next" aria-live="polite"></div>
+          <p class="aid">Cost a concern? In India, free legal aid is available through State and District Legal Services Authorities. The toll-free NALSA helpline is <strong>15100</strong>.</p>
+        </div>
+      </div>
+
+      <div class="result-tools" id="resultTools" hidden>
+        <button class="btn small" id="btnCopy" type="button">Copy result</button>
+        <button class="btn small" id="btnPrint" type="button">Print or save as PDF</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ───────────── Settings ───────────── -->
+  <dialog id="settings" aria-labelledby="settingsTitle">
+    <form method="dialog" class="settings-form" id="settingsForm">
+      <h2 id="settingsTitle">Settings</h2>
+
+      <label class="field">Google Gemini API key
+        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
+        <span class="hint">Get a free key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>. It stays in this browser and is sent only to Google.</span>
+      </label>
+      <label class="check-row"><input type="checkbox" id="rememberKey"> Remember the key on this device</label>
+
+      <label class="field">Model
+        <select id="modelSel"></select>
+      </label>
+      <label class="field" id="customModelRow" hidden>Custom model name
+        <input id="customModel" type="text" placeholder="e.g. gemini-2.5-pro">
+      </label>
+
+      <label class="field">Country or state <span class="muted">(optional)</span>
+        <input id="jurisdiction" type="text" maxlength="80" placeholder="e.g. Maharashtra, India">
+        <span class="hint">Helps the assistant point to the right kind of help. It does not cite laws it cannot verify.</span>
+      </label>
+
+      <p class="privacy"><strong>Privacy.</strong> There is no server behind this page. Your document goes from your browser straight to the Gemini API. On free API tiers Google may use submitted content to improve its products, so use “Hide personal details” first and avoid uploading anything you would not want processed.</p>
+
+      <div class="dialog-actions">
+        <button class="btn" value="cancel" type="submit" formnovalidate>Cancel</button>
+        <button class="btn primary" value="save" type="submit" id="saveSettings">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="config.js"></script>
+  <script src="samples.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
